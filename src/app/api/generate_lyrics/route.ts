@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      const lyrics = await (await sunoApi).generateLyrics(prompt);
+      const lyrics = await (await sunoApi(req)).generateLyrics(prompt);
 
       return new NextResponse(JSON.stringify(lyrics), {
         status: 200,

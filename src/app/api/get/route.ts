@@ -9,12 +9,14 @@ export async function GET(req: NextRequest) {
     try {
       const url = new URL(req.url);
       const songIds = url.searchParams.get('ids');
+      const client = await sunoApi(req);
+
       let audioInfo = [];
       if (songIds && songIds.length > 0) {
         const idsArray = songIds.split(',');
-        audioInfo = await (await sunoApi).get(idsArray);
+        audioInfo = await client.get(idsArray);
       } else {
-        audioInfo = await (await sunoApi).get();
+        audioInfo = await client.get();
       }
 
       return new NextResponse(JSON.stringify(audioInfo), {

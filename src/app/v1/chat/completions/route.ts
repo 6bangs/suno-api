@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     }
 
 
-    const audioInfo = await (await sunoApi).generate(userMessage.content, true, true);
+    const audioInfo = await (await sunoApi(req)).generate(userMessage.content, true, true);
 
     const audio = audioInfo[0]
     const data = `## Song Title: ${audio.title}\n![Song Cover](${audio.image_url})\n### Lyrics:\n${audio.lyric}\n### Listen to the song: ${audio.audio_url}`

@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   if (req.method === 'GET') {
     try {
 
-      const limit = await (await sunoApi).get_credits();
+      const limit = await (await sunoApi(req)).get_credits();
 
 
       return new NextResponse(JSON.stringify(limit), {

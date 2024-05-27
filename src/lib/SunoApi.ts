@@ -7,7 +7,6 @@ import { sleep } from "@/lib/utils";
 
 const logger = pino();
 
-
 export interface AudioInfo {
   id: string; // Unique identifier for the audio
   title?: string; // Title of the audio
@@ -384,13 +383,21 @@ class SunoApi {
   }
 }
 
+let sunoApiInstance: SunoApi;
+
 const newSunoApi = async (cookie: string) => {
   const sunoApi = new SunoApi(cookie);
   return await sunoApi.init();
-}
+};
 
-if (!process.env.SUNO_COOKIE) {
-  console.log("Environment does not contain SUNO_COOKIE.", process.env)
-}
-
-export const sunoApi = newSunoApi(process.env.SUNO_COOKIE || '');
+export const sunoApi = async (req: Request) => {
+  if (!sunoApiInstance) {
+    const requestCookie = req.headers.get('Cookie');
+    const cookie = requestCookie && requestCookie.trim() !== '' ? requestCookie : process.env.SUNO_COOKIE;
+    if (!cookie) {
+      console.error("No cookie found in request or SUNO_COOKIE environment variable.");
+    }
+    sunoApiInstance = await newSunoApi(cookie || '');
+  }
+  return sunoApiInstance;
+};

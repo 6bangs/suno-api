@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
           }
         });
       }
-      const audioInfo = await (await sunoApi).concatenate(clip_id);
+      const audioInfo = await (await sunoApi(req)).concatenate(clip_id);
       return new NextResponse(JSON.stringify(audioInfo), {
         status: 200,
         headers: {

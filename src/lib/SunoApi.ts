@@ -63,12 +63,19 @@ class SunoApi {
    */
   private async getAuthToken() {
     // URL to get session ID
-    const getSessionUrl = `${SunoApi.CLERK_BASE_URL}/v1/client?_clerk_js_version=4.73.2`;                                                                                      
+    const getSessionUrl = `${SunoApi.CLERK_BASE_URL}/v1/client?_clerk_js_version=4.73.2`;
+
     // Get session ID
     const sessionResponse = await this.client.get(getSessionUrl);
     if (!sessionResponse?.data?.response?.['last_active_session_id']) {
-      throw new Error("Failed to get session id, you may need to update the SUNO_COOKIE");
+      // SUNO_COOKIE expired
+      throw {
+        response: {
+          status: 401,
+        },
+      };
     }
+
     // Save session ID for later use
     this.sid = sessionResponse.data.response['last_active_session_id'];
   }

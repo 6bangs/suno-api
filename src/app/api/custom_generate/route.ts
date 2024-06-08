@@ -32,16 +32,31 @@ export async function POST(req: NextRequest) {
         }
       });
     } catch (error: any) {
-      console.error('Error generating custom audio:', error.response.data);
-      if (error.response.status === 402) {
-        return new NextResponse(JSON.stringify({ error: error.response.data.detail }), {
-          status: 402,
-          headers: {
-            'Content-Type': 'application/json',
-            ...corsHeaders
-          }
-        });
+      const response = error?.response;
+      const status = response?.status;
+      if (status != null) {
+        if (status === 401) {
+          return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401,
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          });
+        }
+
+        if (status === 402) {
+          return new NextResponse(JSON.stringify({ error: response.data?.detail }), {
+            status: 402,
+            headers: {
+              'Content-Type': 'application/json',
+              ...corsHeaders
+            }
+          });
+        }
       }
+
+      console.error('Unknown error response when generating custom audio:', error);
       return new NextResponse(JSON.stringify({ error: 'Internal server error' }), {
         status: 500,
         headers: {

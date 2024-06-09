@@ -9,7 +9,6 @@ export async function POST(req: NextRequest) {
     try {
       const body = await req.json();
       const { audio_id, prompt, continue_at, tags, title } = body;
-      console.log(body)
 
       if (!audio_id) {
         return new NextResponse(JSON.stringify({ error: 'Audio ID is required' }), {

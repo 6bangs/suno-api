@@ -26,9 +26,18 @@ export async function GET(req: NextRequest) {
           ...corsHeaders
         }
       });
-    } catch (error) {
-      console.error('Error fetching audio:', error);
+    } catch (error: any) {
+      if (error?.response?.status === 401) {
+        return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders
+          }
+        });
+      }
 
+      console.error('Error fetching audio:', error);
       return new NextResponse(JSON.stringify({ error: 'Internal server error' }), {
         status: 500,
         headers: {

@@ -6,6 +6,7 @@ import { CookieJar } from "tough-cookie";
 import { sleep } from "@/lib/utils";
 
 const logger = pino();
+export const DEFAULT_MODEL = "chirp-v3-5";
 
 export interface AudioInfo {
   id: string; // Unique identifier for the audio
@@ -63,8 +64,7 @@ class SunoApi {
    */
   private async getAuthToken() {
     // URL to get session ID
-    const getSessionUrl = `${SunoApi.CLERK_BASE_URL}/v1/client?_clerk_js_version=4.73.2`;
-
+    const getSessionUrl = `${SunoApi.CLERK_BASE_URL}/v1/client?_clerk_js_version=4.73.3`;
     // Get session ID
     const sessionResponse = await this.client.get(getSessionUrl);
     if (!sessionResponse?.data?.response?.['last_active_session_id']) {
@@ -89,7 +89,7 @@ class SunoApi {
       throw new Error("Session ID is not set. Cannot renew token.");
     }
     // URL to renew session token
-    const renewUrl = `${SunoApi.CLERK_BASE_URL}/v1/client/sessions/${this.sid}/tokens?_clerk_js_version==4.73.2`;  
+    const renewUrl = `${SunoApi.CLERK_BASE_URL}/v1/client/sessions/${this.sid}/tokens?_clerk_js_version==4.73.3`;
     // Renew session token
     const renewResponse = await this.client.post(renewUrl);
     logger.info("KeepAlive...\n");
@@ -111,11 +111,13 @@ class SunoApi {
   public async generate(
     prompt: string,
     make_instrumental: boolean = false,
+    model?: string,
     wait_audio: boolean = false,
+
   ): Promise<AudioInfo[]> {
     await this.keepAlive(false);
     const startTime = Date.now();
-    const audios = this.generateSongs(prompt, false, undefined, undefined, make_instrumental, wait_audio);
+    const audios = this.generateSongs(prompt, false, undefined, undefined, make_instrumental, model, wait_audio);
     const costTime = Date.now() - startTime;
     logger.info("Generate Response:\n" + JSON.stringify(audios, null, 2));
     logger.info("Cost time: " + costTime);
@@ -160,10 +162,11 @@ class SunoApi {
     tags: string,
     title: string,
     make_instrumental: boolean = false,
+    model?: string,
     wait_audio: boolean = false,
   ): Promise<AudioInfo[]> {
     const startTime = Date.now();
-    const audios = await this.generateSongs(prompt, true, tags, title, make_instrumental, wait_audio);
+    const audios = await this.generateSongs(prompt, true, tags, title, make_instrumental, model, wait_audio);
     const costTime = Date.now() - startTime;
     logger.info("Custom Generate Response:\n" + JSON.stringify(audios, null, 2));
     logger.info("Cost time: " + costTime);
@@ -187,12 +190,13 @@ class SunoApi {
     tags?: string,
     title?: string,
     make_instrumental?: boolean,
+    model?: string,
     wait_audio: boolean = false
   ): Promise<AudioInfo[]> {
     await this.keepAlive(false);
     const payload: any = {
       make_instrumental: make_instrumental == true,
-      mv: "chirp-v3-5",
+      mv: model || DEFAULT_MODEL,
       prompt: "",
     };
     if (isCustom) {
@@ -260,7 +264,7 @@ class SunoApi {
         prompt: audio.metadata.prompt,
         type: audio.metadata.type,
         tags: audio.metadata.tags,
-        duration: audio.metadata.duration_formatted,
+        duration: audio.metadata.duration,
       }));
     }
   }
@@ -302,16 +306,18 @@ class SunoApi {
     prompt: string = "",
     continueAt: string = "0",
     tags: string = "",
-    title: string = ""
+    title: string = "",
+    model?: string,
   ): Promise<AudioInfo> {
     const response = await this.client.post(`${SunoApi.BASE_URL}/api/generate/v2/`, {
       continue_clip_id: audioId,
       continue_at: continueAt,
-      mv: "chirp-v3-0",
+      mv: model || DEFAULT_MODEL,
       prompt: prompt,
       tags: tags,
-      title: ""
+      title: title
     });
+    console.log("response：\n", response);
     return response.data;
   }
 
@@ -366,7 +372,7 @@ class SunoApi {
       prompt: audio.metadata.prompt,
       type: audio.metadata.type,
       tags: audio.metadata.tags,
-      duration: audio.metadata.duration_formatted,
+      duration: audio.metadata.duration,  
       error_message: audio.metadata.error_message,
     }));
   }

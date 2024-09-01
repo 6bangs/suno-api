@@ -1,8 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import UserAgent from 'user-agents';
 import pino from 'pino';
-import { wrapper } from "axios-cookiejar-support";
-import { CookieJar } from "tough-cookie";
 import { sleep } from "@/lib/utils";
 
 const logger = pino();
@@ -35,16 +33,14 @@ class SunoApi {
   private currentToken?: string;
 
   constructor(cookie: string) {
-    const cookieJar = new CookieJar();
     const randomUserAgent = new UserAgent(/Chrome/).random().toString();
-    this.client = wrapper(axios.create({
-      jar: cookieJar,
+    this.client = axios.create({
       withCredentials: true,
       headers: {
         'User-Agent': randomUserAgent,
         'Cookie': cookie
       }
-    }))
+    })
     this.client.interceptors.request.use((config) => {
       if (this.currentToken) { // Use the current token status
         config.headers['Authorization'] = `Bearer ${this.currentToken}`;

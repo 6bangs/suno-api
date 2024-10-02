@@ -396,21 +396,16 @@ class SunoApi {
   }
 }
 
-let sunoApiInstance: SunoApi;
-
 const newSunoApi = async (cookie: string) => {
   const sunoApi = new SunoApi(cookie);
   return await sunoApi.init();
 };
 
 export const sunoApi = async (req: Request) => {
-  if (!sunoApiInstance) {
-    const requestCookie = req.headers.get('Cookie');
-    const cookie = requestCookie && requestCookie.trim() !== '' ? requestCookie : process.env.SUNO_COOKIE;
-    if (!cookie) {
-      console.error("No cookie found in request or SUNO_COOKIE environment variable.");
-    }
-    sunoApiInstance = await newSunoApi(cookie || '');
+  const requestCookie = req.headers.get('Cookie');
+  const cookie = requestCookie && requestCookie.trim() !== '' ? requestCookie : process.env.SUNO_COOKIE;
+  if (!cookie) {
+    console.error("No cookie found in request or SUNO_COOKIE environment variable.");
   }
-  return sunoApiInstance;
+  return await newSunoApi(cookie || '');
 };
